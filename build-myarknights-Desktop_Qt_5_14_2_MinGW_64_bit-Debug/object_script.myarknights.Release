@@ -1,0 +1,17 @@
+release/cell.o
+release/config.o
+release/enemy.o
+release/episodes.o
+release/gamescene.o
+release/hero.o
+release/main.o
+release/mainwindow.o
+release/unit.o
+release/qrc_CG.o
+release/qrc_map_config.o
+release/moc_cell.o
+release/moc_enemy.o
+release/moc_episodes.o
+release/moc_gamescene.o
+release/moc_mainwindow.o
+release/moc_unit.o

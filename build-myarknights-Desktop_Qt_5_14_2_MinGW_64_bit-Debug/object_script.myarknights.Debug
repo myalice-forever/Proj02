@@ -1,0 +1,17 @@
+debug/cell.o
+debug/config.o
+debug/enemy.o
+debug/episodes.o
+debug/gamescene.o
+debug/hero.o
+debug/main.o
+debug/mainwindow.o
+debug/unit.o
+debug/qrc_CG.o
+debug/qrc_map_config.o
+debug/moc_cell.o
+debug/moc_enemy.o
+debug/moc_episodes.o
+debug/moc_gamescene.o
+debug/moc_mainwindow.o
+debug/moc_unit.o

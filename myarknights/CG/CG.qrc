@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>bac1.png</file>
+        <file>bac2.png</file>
+        <file>bac3.png</file>
+        <file>bac4.png</file>
+        <file>episodes.png</file>
+        <file>first.png</file>
+        <file>logo_reserve6.png</file>
+        <file>smirk.png</file>
+        <file>vomit.png</file>
+        <file>hug.png</file>
+        <file>pleasegod.png</file>
+        <file>smileangle.png</file>
+        <file>yummy.png</file>
+        <file>sweat.png</file>
+        <file>wry.png</file>
+    </qresource>
+</RCC>
