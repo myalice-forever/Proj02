@@ -15,7 +15,6 @@ protected:
     double original_HP;
     double current_HP;
     //¹¥»÷ÊôĞÔ
-    QTimer* attack_timer;
     double ATK;
     double attack_interval;
 

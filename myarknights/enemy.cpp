@@ -19,68 +19,74 @@ Enemy::Enemy(double hp,double atk,double atk_interval,double speeds,double _gene
     pos_index=0;
     this->set_path(_map->paths.at(path_index));
     this->set_cell(path[0]);
-    this->setGeometry(cell->x()*80,cell->y()*90,pix_width,pix_height);
+    this->setGeometry(cell->x()*100,cell->y()*100,pix_width,pix_height);
     //设置产生间隔
     state=MOVING;
-    flying=false;
-    remote=false;
-    attack_range=100;
-    war_addiction=true;
+    reachend=false;
+    flying=false;//是否飞行
+    remote=false;//是否能远程攻击
+    remote_able=false;//是否能攻击我方远程攻击单位
+    aoe_able=false;//是否是aoe伤害
+    buffed=false;
+    attack_range=1;//攻击范围
+    direction=Circle;
+    war_addiction=true;//是否恋战（恋战只能攻击或移动)
+    attack_turn_count=attack_interval;
+    attacked_label=new QLabel(parent);
+    QFont ft;
+    ft.setPointSize(12);
+    attacked_label->setFont(ft);
+    attacked_label->show();
+    QTimer* attacked_timer=new QTimer(this);
+    attacked_timer->setInterval(200);
+    connect(attacked_timer,&QTimer::timeout,[=](){
+        attacked_label->hide();
+    });
+    attacked_timer->start();
 }
 
-void Enemy::init(QString& name){
-
-}
 
 void Enemy::Update(){
     healthbar->setValue((double)(current_HP/original_HP)*100);
     setUpdatesEnabled(false);
-    if(is_dead()){
-        Dead();
-    }
-    if(remote){
-        this->attack();
-    }
-    else if(cell->blocked){
-        if(flying){
-            this->attack();
-            if(war_addiction)
-                state=ATTACKING;
+    if(!remote){
+//        qDebug()<<cell->get_row()<<cell->get_column()<<cell->blocked;
+        if(cell->blocked){
+            close_combat();
+            if((flying&&war_addiction)||cell->get_type()==Cell::BLOCKED)
+                state=NOTMOVING;
         }
-        else{
-//            state=ATTACKING;
-            this->attack();
-        }
-    }
-    else{
         state=MOVING;
     }
+    else if(hero_in_range()){
+        if((flying&&war_addiction)||(cell->get_type()==Cell::BLOCKED&&!flying)){
+            state=NOTMOVING;
+        }
+        remote_attack();
+    }
+    else
+        state=MOVING;
+    //移动操作
     if(state==MOVING){
         if(pos_index<path.size()){
-            if(this->pos()==QPoint(path[pos_index]->get_row()*100,path[pos_index]->get_column()*100)){
+            if(this->pos()==QPoint(path[pos_index]->get_column()*100,path[pos_index]->get_row()*100)){
                 pos_index++;
                 cell->delete_enemy(this);
                 if(pos_index==path.size()){
-                    current_HP=0;
+//                    qDebug()<<this;
                     this->reach_end();
                     return;
                 }
                 cell=path[pos_index];
                 cell->set_enemy(this);
         }
-//        if(pos_index==path.size()){
-//            qDebug()<<"enemy reach end";
-//            current_HP=0;
-//            this->reach_end();
-//            return;
-//        }
-        int _x=path[pos_index]->get_row()*100-this->pos().x();
-        int _y=path[pos_index]->get_column()*100-this->pos().y();
+        int _x=path[pos_index]->get_column()*100-this->pos().x();
+        int _y=path[pos_index]->get_row()*100-this->pos().y();
         if(_x==0){
-            _y/=abs(path[pos_index]->get_column()*100-this->pos().y());
+            _y/=abs(path[pos_index]->get_row()*100-this->pos().y());
         }
         else{
-            _x/=abs(path[pos_index]->get_row()*100-this->pos().x());
+            _x/=abs(path[pos_index]->get_column()*100-this->pos().x());
         }
         this->setGeometry(this->pos().x()+_x*2,this->pos().y()+_y*2,pix_width,pix_height);
     }
@@ -104,39 +110,240 @@ bool Enemy::set_cell(Cell* _cell){
 
 void Enemy::be_attacked(int atk){
     current_HP-=atk;
+//    qDebug()<<"be attacked!"<<atk;
+    QString str="-";str+=QString::number(atk);
+    attacked_label->setText(str);
+    attacked_label->setGeometry(pos().x()+30,pos().y()+25,100,50);
+    attacked_label->show();
+//    qDebug()<<cell->get_row()<<cell->get_column();
 }
 
-void Enemy::attack(){
-    if(remote){
-        for(int i=0;i<parent->heroes.size();i++){
+bool Enemy::hero_in_range(){
+    for(int i=0;i<parent->heroes.size();i++){
+        auto hero=parent->heroes[i];
+        if(get_distance(hero,this)<=attack_range*100){
+            if(hero->is_remote()&&remote_able)
+                return true;
+            else if(!hero->is_remote())
+                return true;
+        }
+    }
+    return false;
+}
+
+void Enemy::remote_attack(){
+    if(attack_turn_count==0){
+        if(aoe_able){
+            aoe_attack();
+        }
+        else
+            single_attack();
+        attack_turn_count=attack_interval;
+    }
+    else {
+        attack_turn_count--;
+    }
+}
+
+void Enemy::aoe_attack(){
+    int row=cell->get_row();int col=cell->get_column();
+    QTimer* temp=new QTimer(this);
+    switch(direction){
+    case North:{
+        for(int i=std::max(0,row-attack_range);i<(int)parent->map->get_map_y()&&i<row;i++){
+            auto hero=parent->map->maps[i][col]->hero_in_cell;
+            if(hero){
+                qDebug()<<i<<col;
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
+                    hero->be_attacked(ATK);
+            }
+            parent->map->maps[i][col]->setPixmap(QPixmap(":/show_direction2.png"));
+        }
+        temp->singleShot(100,[=](){
+            for(int i=std::max(0,row-attack_range);i<(int)parent->map->get_map_y()&&i<row;i++){
+                parent->map->maps[i][col]->setPixmap(QPixmap(parent->map->maps[i][col]->pix_path));
+            }
+        });
+        break;
+    }
+    case South:{
+        for(int i=row;i<(int)parent->map->get_map_y()&&i<row+attack_range;i++){
+            auto hero=parent->map->maps[i][col]->hero_in_cell;
+            if(hero){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
+                    hero->be_attacked(ATK);
+            }
+             parent->map->maps[i][col]->setPixmap(QPixmap(":/show_direction2.png"));
+        }
+        temp->singleShot(15*attack_interval,[=](){
+            for(int i=row;i<(int)parent->map->get_map_y()&&i<row+attack_range;i++){
+                parent->map->maps[i][col]->setPixmap(QPixmap(parent->map->maps[i][col]->pix_path));
+            }
+        });
+        break;
+    }
+    case West:{
+        for(int j=std::max(0,col);j<(int)parent->map->get_map_x()&&j<col;j++){
+            auto hero=parent->map->maps[row][j]->hero_in_cell;
+            if(hero){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
+                    hero->be_attacked(ATK);
+            }
+             parent->map->maps[row][j]->setPixmap(QPixmap(":/show_direction2.png"));
+        }
+        temp->singleShot(15*attack_interval,[=](){
+            for(int j=std::max(0,col);j<(int)parent->map->get_map_x()&&j<col;j++){
+                parent->map->maps[row][j]->setPixmap(QPixmap(parent->map->maps[row][j]->pix_path));
+            }
+        });
+        break;
+    }
+    case East:{
+        qDebug()<<"north attack";
+        for(int j=col;j<(int)parent->map->get_map_x()&&j<col+attack_range;j++){
+            auto hero=parent->map->maps[row][j]->hero_in_cell;
+            if(hero){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote()){
+                    hero->be_attacked(ATK);}
+            }
+           parent->map->maps[row][j]->setPixmap(QPixmap(":/show_direction2.png"));
+        }
+        temp->singleShot(15*attack_interval,[=](){
+            for(int j=col;j<(int)parent->map->get_map_x()&&j<col+attack_range;j++){
+                parent->map->maps[row][j]->setPixmap(QPixmap(parent->map->maps[row][j]->pix_path));
+            }
+        });
+        break;
+    }
+    case Circle:{
+        for(int i=0;i<parent->enemies.size();i++){
             auto hero=parent->heroes[i];
-            if(get_distance(hero,this)<=attack_range){
-//                qDebug()<<"attack hero";
-                if(!hero->is_remote())
+            if(get_distance(hero,this)<=attack_range*100){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
                     hero->be_attacked(ATK);
             }
         }
     }
-    else{
-        if(search_hero(cell)){
-            qDebug()<<"search hero";
-            cell->hero_in_cell->be_attacked(ATK);
+    }
+    delete temp;
+}
+
+void Enemy::single_attack(){
+    int row=cell->get_row();int col=cell->get_column();
+    switch(direction){
+    case North:{
+        for(int i=std::max(0,row-attack_range);i<(int)parent->map->get_map_y()&&i<row;i++){
+            auto hero=parent->map->maps[i][col]->hero_in_cell;
+            if(hero){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
+                    hero->be_attacked(ATK);
+                break;
+            }
+        }
+        break;
+    }
+    case South:{
+        for(int i=row;i<(int)parent->map->get_map_y()&&i<row+attack_range;i++){
+            auto hero=parent->map->maps[i][col]->hero_in_cell;
+            if(hero){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
+                    hero->be_attacked(ATK);
+                break;
+            }
+        }
+        break;
+    }
+    case West:{
+        for(int j=std::max(0,col);j<(int)parent->map->get_map_x()&&j<col;j++){
+            auto hero=parent->map->maps[row][j]->hero_in_cell;
+            if(hero){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
+                    hero->be_attacked(ATK);
+                break;
+            }
+
+        }
+        break;
+    }
+    case East:{
+        for(int j=col;j<(int)parent->map->get_map_x()&&j<col+attack_range;j++){
+            auto hero=parent->map->maps[row][j]->hero_in_cell;
+            if(hero){
+                if(hero->is_remote()&&remote_able)
+                    hero->be_attacked(ATK);
+                else if(!hero->is_remote())
+                    hero->be_attacked(ATK);
+                break;
+            }
+        }
+        break;
+    }
+    case Circle:{
+        for(int i=0;i<parent->enemies.size();i++){
+            auto hero=parent->heroes[i];
+            if(get_distance(hero,this)<=attack_range*100){
+                if(hero){
+                    if(hero->is_remote()&&remote_able)
+                        hero->be_attacked(ATK);
+                    else if(!hero->is_remote())
+                        hero->be_attacked(ATK);
+                    break;
+                }
+            }
         }
     }
-//    if(search_hero(cell))
-//        cell->hero_in_cell->be_attacked(ATK);
+    }
+}
+
+void Enemy::close_combat(){
+    if(attack_turn_count==0){
+        if(cell->blocked){
+            cell->hero_in_cell->be_attacked(ATK);
+        }
+        attack_turn_count=attack_interval;
+    }
+    else
+        attack_turn_count--;
+}
+
+void Enemy::buff_attack(){
+
 }
 
 void Enemy::Dead(){
-    cell->delete_enemy(this);
+    cell->delete_enemy(this);//将敌人从所在格子中移除
+    delete attacked_label;
+    parent->enemy_killed++;
 }
 
+//敌人到达终点后生命值--
 void Enemy::reach_end(){
     cell->delete_enemy(this);
-    parent->health--;
+//    qDebug()<<"reach end,health--";
+    parent->health-=1;
+    parent->enemy_killed++;
     reachend=true;
 }
 
+//飞行角色为Hugger和Sweater,其中Sweater为畏战。默认都为恋战
+//地面角色中，远程攻击为Vomit,暂时为范围攻击，攻击区域为圆形。近战为Wryer
+//近战角色为Hugger
 Hugger::Hugger(double hp,double atk,double atk_interval,double speeds,double _generate_interval,\
              int _path_index,Map* map,GameScene* parent):\
              Enemy(hp,atk,atk_interval,_generate_interval,speeds,_path_index,map,parent)
@@ -144,7 +351,11 @@ Hugger::Hugger(double hp,double atk,double atk_interval,double speeds,double _ge
     this->setPixmap(QPixmap(":/hug.png"));
     this->setFixedSize(75,75);
     this->setScaledContents(true);
-    flying=true;
+    aoe_able=true;
+    remote=true;
+    direction=East;
+    attack_range=2;
+//    flying=true;
     this->show();
 }
 
@@ -156,7 +367,8 @@ Vomit::Vomit(double hp,double atk,double atk_interval,double speeds,double _gene
     this->setFixedSize(75,75);
     this->setScaledContents(true);
     remote=true;
-    attack_range=200;
+    aoe_able=true;
+    attack_range=2;
     this->show();
 }
 

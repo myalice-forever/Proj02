@@ -18,10 +18,10 @@ Episodes::Episodes(QWidget *parent) :
     lev01->setIconSize(QSize(510,510));
     lev01->setStyleSheet("background-color: rgb(0, 0, 0);");
     lev01->setIcon(QIcon(":/logo_reserve6.png"));
-    GameScene* gamescene=new GameScene;
     //通过按钮来切换页面
-    connect(lev01,&QPushButton::clicked,gamescene,[=](){
+    connect(lev01,&QPushButton::clicked,[=](){
         this->close();
+        GameScene* gamescene=new GameScene;
         gamescene->show();
     });
 }

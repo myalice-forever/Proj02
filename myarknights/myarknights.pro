@@ -10,29 +10,38 @@ CONFIG += c++17
 
 SOURCES += \
     cell.cpp \
+    changedirection.cpp \
     config.cpp \
+    ending.cpp \
     enemy.cpp \
     episodes.cpp \
     gamescene.cpp \
     hero.cpp \
     main.cpp \
     mainwindow.cpp \
+    state.cpp \
     unit.cpp
 
 HEADERS += \
     cell.h \
+    changedirection.h \
     config.h \
+    ending.h \
     enemy.h \
     episodes.h \
     gamescene.h \
     hero.h \
     mainwindow.h \
+    state.h \
     unit.h
 
 FORMS += \
+    changedirection.ui \
+    ending.ui \
     episodes.ui \
     gamescene.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    state.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

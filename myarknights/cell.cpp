@@ -8,10 +8,16 @@
 #include "enemy.h"
 #include "gamescene.h"
 
-Cell::Cell(int _row,int _col,cell_type _type,GameScene* _parent)
+int prayer_cost=10;
+int angle_cost=20;
+int smirker_cost=5;
+int yummer_cost=5;
+
+Cell::Cell(int _col,int _row,cell_type _type,GameScene* _parent)
 {
     row=_row;
     column=_col;
+//    qDebug()<<row<<column;
     pix_height=100;
     pix_width=100;
     type=original_type=_type;
@@ -53,14 +59,18 @@ void Cell::mousePressEvent(QMouseEvent *event)
         if(event->button()== Qt::LeftButton){
             switch(parent->hero_type){
             case emoji1:{
-                Prayer* prayer=new Prayer(1000,50,0,0,0,10,0,this->pos().x(),this->pos().y(),parent);
+                if(parent->resource<prayer_cost)
+                    return;
+                Prayer* prayer=new Prayer(1000,100,0,0,0,prayer_cost,0,this->pos().x(),this->pos().y(),parent);
                 parent->heroes.append(prayer);
                 prayer->set_cell(this);
                 this->set_hero(prayer);
                 break;
             }
             case emoji2:{
-                Angle* angle=new Angle(150,50,0,0,0,10,0,this->pos().x(),this->pos().y(),parent);
+                if(parent->resource<angle_cost)
+                    return;
+                Angle* angle=new Angle(150,50,0,0,0,angle_cost,0,this->pos().x(),this->pos().y(),parent);
                 parent->heroes.append(angle);
                 angle->set_cell(this);
                 this->set_hero(angle);
@@ -75,14 +85,18 @@ void Cell::mousePressEvent(QMouseEvent *event)
         {
             switch(parent->hero_type){
             case emoji3:{
-                Smirker* smirker=new Smirker(150,0,0,0,0,10,0,this->pos().x(),this->pos().y(),parent);
+                if(parent->resource<smirker_cost)
+                    return;
+                Smirker* smirker=new Smirker(1000,0,5,0,0,smirker_cost,0,this->pos().x(),this->pos().y(),parent);
                 parent->heroes.append(smirker);
                 smirker->set_cell(this);
                 this->set_hero(smirker);
                 break;
             }
             case emoji4:{
-                Yummer* yummer=new Yummer(1000,40,0,0,0,10,0,this->pos().x(),this->pos().y(),parent);
+                if(parent->resource<yummer_cost)
+                    return;
+                Yummer* yummer=new Yummer(1000,40,0,0,0,yummer_cost,0,this->pos().x(),this->pos().y(),parent);
                 parent->heroes.append(yummer);
                 yummer->set_cell(this);
                 this->set_hero(yummer);
@@ -95,13 +109,11 @@ void Cell::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void Cell::Update(){
-     if(!hero_in_cell||hero_in_cell->rest_defence_num>0)
-         type=BLOCKED;
-     type=original_type;
-//     if(enemy_lst.size()>0)
-//         qDebug()<<enemy_lst.size()<<pos()<<enemy_lst;
-}
+//void Cell::Update(){
+//     if(!hero_in_cell||hero_in_cell->rest_defence_num>0)
+//         type=BLOCKED;
+//     type=original_type;
+//}
 
 double get_distance(QLabel* lab1, QLabel* lab2){
     int _x=(lab1->pos().x()-lab2->pos().x())*(lab1->pos().x()-lab2->pos().x());

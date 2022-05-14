@@ -26,12 +26,13 @@ public:
     int row;
     int pix_height;
     int pix_width;
+    QString pix_path;
 private:
     cell_type original_type;
     cell_type type;
     GameScene* parent;
 public:
-    Cell(int _row,int _col,cell_type _type,GameScene* parent);
+    Cell(int _col,int _row,cell_type _type,GameScene* parent);
     int get_column(){return column;}
     int get_row(){return row;}
     int get_width(){return pix_width;}
@@ -51,7 +52,7 @@ public:
     friend Hero* search_hero(Cell* cell);
     void delete_enemy(Enemy* enemy);
     //地图的update事件
-    void Update();
+//    void Update();
 };
 
 //辅助函数

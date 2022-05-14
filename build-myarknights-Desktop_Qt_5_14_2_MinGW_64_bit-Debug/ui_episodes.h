@@ -32,7 +32,7 @@ public:
 
     void retranslateUi(QWidget *Episodes)
     {
-        Episodes->setWindowTitle(QCoreApplication::translate("Episodes", "Form", nullptr));
+        Episodes->setWindowTitle(QCoreApplication::translate("Episodes", "Episodes", nullptr));
     } // retranslateUi
 
 };

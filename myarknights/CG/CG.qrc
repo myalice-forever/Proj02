@@ -15,5 +15,12 @@
         <file>yummy.png</file>
         <file>sweat.png</file>
         <file>wry.png</file>
+        <file>joker.png</file>
+        <file>shao.png</file>
+        <file>win.png</file>
+        <file>show_direction1.png</file>
+        <file>show_direction2.png</file>
+        <file>circle.png</file>
+        <file>money.png</file>
     </qresource>
 </RCC>

@@ -21,8 +21,8 @@ QT_BEGIN_NAMESPACE
 class Ui_GameScene
 {
 public:
-    QMenuBar *menubar;
     QWidget *centralwidget;
+    QMenuBar *menubar;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *GameScene)
@@ -30,12 +30,13 @@ public:
         if (GameScene->objectName().isEmpty())
             GameScene->setObjectName(QString::fromUtf8("GameScene"));
         GameScene->resize(800, 600);
-        menubar = new QMenuBar(GameScene);
-        menubar->setObjectName(QString::fromUtf8("menubar"));
-        GameScene->setMenuBar(menubar);
         centralwidget = new QWidget(GameScene);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         GameScene->setCentralWidget(centralwidget);
+        menubar = new QMenuBar(GameScene);
+        menubar->setObjectName(QString::fromUtf8("menubar"));
+        menubar->setGeometry(QRect(0, 0, 800, 26));
+        GameScene->setMenuBar(menubar);
         statusbar = new QStatusBar(GameScene);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         GameScene->setStatusBar(statusbar);
@@ -47,7 +48,7 @@ public:
 
     void retranslateUi(QMainWindow *GameScene)
     {
-        GameScene->setWindowTitle(QCoreApplication::translate("GameScene", "MainWindow", nullptr));
+        GameScene->setWindowTitle(QCoreApplication::translate("GameScene", "GameScene", nullptr));
     } // retranslateUi
 
 };

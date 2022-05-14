@@ -56,25 +56,30 @@ bool Map::load_mapconfig_file(QString file_path){
             case 'P':
                 new_cell=new Cell(j,i,Cell::PLACEABLE,parent);
                 new_cell->setPixmap(QPixmap(":/bac2.png"));
+                new_cell->pix_path=":/bac2.png";
                 break;
             case 'F':
                 new_cell=new Cell(j,i,Cell::FIRST_PATH,parent);
                 new_cell->setPixmap(QPixmap(":/bac3.png"));
                 fir_path.append(new_cell);
+                new_cell->pix_path=":/bac3.png";
                 break;
             case 'S':
                 new_cell=new Cell(j,i,Cell::SECOND_PATH,parent);
                 new_cell->setPixmap(QPixmap(":/bac3.png"));
+                new_cell->pix_path=":/bac3.png";
                 sec_path.append(new_cell);
                 break;
             case 'T':
                 new_cell=new Cell(j,i,Cell::THIRD_PATH,parent);
                 new_cell->setPixmap(QPixmap(":/bac3.png"));
+                new_cell->pix_path=":/bac3.png";
                 thi_path.append(new_cell);
                 break;
             case 'A':
                 new_cell=new Cell(j,i,Cell::START,parent);
                 new_cell->setPixmap(QPixmap(":/bac1.png"));
+                new_cell->pix_path=":/bac1.png";
                 fir_path.append(new_cell);
                 sec_path.append(new_cell);
                 thi_path.append(new_cell);
@@ -82,6 +87,7 @@ bool Map::load_mapconfig_file(QString file_path){
             case 'M':
                 new_cell=new Cell(j,i,Cell::END,parent);
                 new_cell->setPixmap(QPixmap(":/bac1.png"));
+                new_cell->pix_path=":/bac1.png";
                 fir_path.append(new_cell);
                 sec_path.append(new_cell);
                 thi_path.append(new_cell);
@@ -89,10 +95,12 @@ bool Map::load_mapconfig_file(QString file_path){
             case 'O':
                 new_cell=new Cell(j,i,Cell::SIDES,parent);
                 new_cell->setPixmap(QPixmap(":/bac4.png"));
+                new_cell->pix_path=":/bac4.png";
                 break;
             case 'W': ;
                 new_cell=new Cell(j,i,Cell::PATH,parent);
                 new_cell->setPixmap(QPixmap(":/bac3.png"));
+                new_cell->pix_path=":/bac3.png";
                 fir_path.append(new_cell);
                 sec_path.append(new_cell);
                 thi_path.append(new_cell); 
@@ -108,7 +116,7 @@ bool Map::load_mapconfig_file(QString file_path){
     }
     paths.push_back(fir_path);paths.push_back(sec_path);paths.push_back(thi_path);
 //    for(int i=0;i<sec_path.size();i++)
-//        qDebug()<<sec_path[i]->pos();
+//        qDebug()<<sec_path[i]->get_row()<<sec_path[i]->get_column()<<sec_path[i]->pos();
     str=file.readLine();
     int count=file.readLine().toInt();
     for(int i=0;i<count;i++){
